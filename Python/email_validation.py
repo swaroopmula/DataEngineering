@@ -9,7 +9,7 @@ def main():
 
 def email_validation(email):
 
-    if re.search(r"^[a-z]\w*[a-z0-9]+@([\w]+\.)?\w+\.(edu|com)$", email, re.IGNORECASE):
+    if re.search(r"^[a-z]\w*[a-z0-9]+@([a-z]+\.)?[a-z]+\.(edu|com|org)$", email, re.IGNORECASE):
         return "Valid Email"
     
     else:
