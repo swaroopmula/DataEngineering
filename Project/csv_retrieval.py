@@ -1,34 +1,39 @@
 import pandas as pd
+import re
 
 def main():
 
-    # file_path = input("Enter the file path: ")
     file_path = "/Users/swaroop/DataEngineering/Project/Electric_Vehicle_Population_Data.csv"
+    new_csv = clean_csv(file_path)
     
-    new_df = clean_data(file_path)
-
-    new_file = "clean_EVP_data.csv"
-    new_df.to_csv(new_file, index=False)
-
-    print(f"Cleaned data saved as '{new_file}'")
+    # new_csv.to_csv("clean_EVP_data.csv", index=False)
 
 
 
-def clean_data(file_path):
+def clean_csv(file_path):
 
     df = pd.read_csv(file_path)
-
-    # print(df.info())
-
-    # print(df.isnull().sum())
-    df.fillna("Unknown", inplace=True)
-
-    # print(df.duplicated().sum())
+    
+    df.columns = snake_case(df.columns)
 
     for col in df.select_dtypes(include=['object']):
         df[col] = df[col].str.strip().str.lower()
 
+    df = df.where(pd.notna(df), None)
+
     return df
+
+
+
+def snake_case(columns):
+
+    new_columns = []
+    for col in columns:
+        col = re.sub(r'[\s()]+', '_', col)
+        col = col.lower()
+        new_columns.append(col)
+
+    return new_columns
 
 
 
