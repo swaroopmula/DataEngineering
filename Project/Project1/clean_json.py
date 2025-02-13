@@ -1,28 +1,14 @@
 import json
-import requests
+import os
+import sys
 import pandas as pd
 
-def main():
-    file_url = "https://data.cityofchicago.org/resource/ydr8-5enu.json"
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from helper import get_json 
+   
+def get_clean_json(url):
 
-    new_json = clean_json(file_url)
-
-    if new_json.empty:
-        print("No data available")
-        return
-
-    # new_json.info(verbose=True)
-    # new_json.to_json("cleaned_API_data.json", orient="records", lines=True)
-
-
-
-def clean_json(url):
-
-    data = fetch_url(url)  
-    if not data:
-        return pd.DataFrame()
-    
-    df = pd.DataFrame(data)
+    df = get_json(url)
     
     int_col = ["processing_time", "street_number", "contact_1_zipcode", "contact_2_zipcode", "contact_3_zipcode", "contact_4_zipcode", 
                "contact_5_zipcode", "contact_6_zipcode", "contact_7_zipcode", "reported_cost", "community_area", "census_tract", "ward",
@@ -45,42 +31,7 @@ def clean_json(url):
     if 'location' in df.columns:
         df['location'] = df['location'].apply(lambda x: json.dumps(x) if isinstance(x, dict) else x)
 
-    df = df.astype(object).where(pd.notna(df), None)
     df.columns = [col.replace(":@", "") for col in df.columns]
-    df.columns = df.columns.str.strip().str.lower()  
 
     return df
 
-
-
-def fetch_url(url):
-
-    try:
-        response = requests.get(url)
-        print("Response Status Code:", response.status_code)
-        response.raise_for_status()
-
-        data = response.json()
-        
-        if not data:
-            print("No data found in the API.")
-            return []
-        
-        return data
-
-    except requests.exceptions.JSONDecodeError:
-        print("Error: API response is not valid JSON.")
-        return []
-
-    except requests.exceptions.HTTPError:
-        print(f"HTTP error occurred!")
-        return []
-
-    except requests.exceptions.RequestException:
-        print(f"Network error!")
-        return []
-
-
-
-if __name__ == "__main__":
-    main()
