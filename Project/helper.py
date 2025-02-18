@@ -5,7 +5,8 @@ import psycopg2
 import psycopg2.extras 
 from psycopg2.extras import execute_batch
 import numpy as np
-
+from io import StringIO
+from google.cloud import storage, bigquery
 
 def get_csv(file_path):
 
@@ -18,11 +19,7 @@ def get_csv(file_path):
         print(f"Error reading CSV: {e}")
         return pd.DataFrame()
 
-    df = clean(df)
-
-    return df
-
-
+    return clean(df)
 
 def get_json(url):
 
@@ -31,11 +28,7 @@ def get_json(url):
         return pd.DataFrame()
     df = pd.DataFrame(data)
     
-    df = clean(df)
-
-    return df
-
-
+    return clean(df)
 
 def fetch_url(url):
 
@@ -64,11 +57,14 @@ def fetch_url(url):
     
     return []
 
-
-
 def clean(df):
     
     df.columns = snake_case(df.columns)
+    df.columns = (
+        df.columns
+        .str.replace(r"[^a-zA-Z0-9_]", "_", regex=True)  
+        .str.strip("_") 
+    )
 
     for col in df.select_dtypes(include=['object']):
         df[col] = df[col].astype(str).str.strip().str.lower()
@@ -76,8 +72,6 @@ def clean(df):
     df = df.where(pd.notna(df), None)
 
     return df
-
-
 
 def snake_case(columns):
 
@@ -88,8 +82,6 @@ def snake_case(columns):
         new_columns.append(col)
 
     return new_columns
-
-
 
 def connect_postgres():
     try:
@@ -104,8 +96,6 @@ def connect_postgres():
     except Exception as e:
         print(f"Error connecting to database: {e}")
         return None
-
-
 
 def insert_data(df, table_name, conn):
     
@@ -138,3 +128,64 @@ def insert_data(df, table_name, conn):
     except Exception as e:
         conn.rollback()
         print(f"Error inserting data into {table_name}: {e}")
+
+def get_df(file_path):
+    if re.search(r"\.csv$", file_path, re.IGNORECASE):
+        return get_csv(file_path)
+    
+    if re.search(r"^(https?://|www\.).+\.json$", file_path, re.IGNORECASE):
+        return get_json(file_path)
+
+def get_postgres_data(query):
+    
+    conn = connect_postgres()
+    if conn is None:
+        print("Failed to connect to database.")
+        return None
+
+    try:
+        df = pd.read_sql(query, conn)
+        return df
+
+    except Exception as e:
+        print(f"Error fetching data from PostgreSQL: {e}")
+        return None
+
+    finally:
+        conn.close()  
+        print("Connection closed.")      
+
+def to_gcs(df, bucket_name, destination_blob_name):
+
+    csv_buffer = StringIO()
+    df.to_csv(csv_buffer, index = False, encoding="utf-8")
+    csv_buffer.seek(0)
+
+    client = storage.Client()
+    bucket = client.bucket(bucket_name)
+    blob = bucket.blob(destination_blob_name)
+
+    blob.upload_from_string(csv_buffer.getvalue(), content_type="text/csv")
+
+    print(f"DataFrame uploaded to GCS: gs://{bucket_name}/{destination_blob_name}")
+
+def to_bigquery(bucket_name, source_blob_name, dataset_id, table_id):
+
+    client = bigquery.Client()
+    
+    uri = f"gs://{bucket_name}/{source_blob_name}"
+
+    job_config = bigquery.LoadJobConfig(
+        source_format = bigquery.SourceFormat.CSV,
+        skip_leading_rows = 1,  
+        autodetect = True  
+    )
+
+    table_ref = client.dataset(dataset_id).table(table_id)
+
+    load_job = client.load_table_from_uri(uri, table_ref, job_config = job_config)
+    load_job.result()
+
+    destination_table = client.get_table(table_ref)  
+    print(f"Loaded {destination_table.num_rows} rows into {dataset_id}.{table_id}.")
+
