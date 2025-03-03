@@ -1,0 +1,16 @@
+[
+  {"name": "series_reference", "type": "STRING"},
+  {"name": "period", "type": "FLOAT"},
+  {"name": "data_value", "type": "FLOAT"},
+  {"name": "suppressed", "type": "STRING"},
+  {"name": "status", "type": "STRING"},
+  {"name": "units", "type": "STRING"},
+  {"name": "magnitude", "type": "INTEGER"},
+  {"name": "subject", "type": "STRING"},
+  {"name": "group", "type": "STRING"},
+  {"name": "series_title_1", "type": "STRING"},
+  {"name": "series_title_2", "type": "STRING"},
+  {"name": "series_title_3", "type": "STRING"},
+  {"name": "series_title_4", "type": "FLOAT"},
+  {"name": "series_title_5", "type": "FLOAT"}
+]

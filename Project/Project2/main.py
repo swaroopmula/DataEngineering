@@ -8,7 +8,7 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/Users/swaroop/Keys/bigquery_key
 sources = [
     {
         "source_type": "csv",
-        "file_path": "/Users/swaroop/DataEngineering/Project/Project1/Electric_Vehicle_Population_Data.csv",
+        "file_path": "/Users/swaroop/DataEngineering/Project/DataSampleFiles/ev_population_data.csv",
         "bucket_name": "project2_data",
         "destination_blob_name": "data/uploaded_data.csv",
         "dataset_id": "ev_population_data",
@@ -47,7 +47,7 @@ def process_data(source):
         return
     
     to_gcs(df, source["bucket_name"], source["destination_blob_name"])
-    to_bigquery(source["bucket_name"], source["destination_blob_name"], source["dataset_id"], source["table_id"])
+    to_bigquery(source["source_type"], source["bucket_name"], source["destination_blob_name"], source["dataset_id"], source["table_id"])
 
 
 

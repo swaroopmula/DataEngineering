@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import re
 import requests
@@ -155,37 +156,64 @@ def get_postgres_data(query):
         conn.close()  
         print("Connection closed.")      
 
-def to_gcs(df, bucket_name, destination_blob_name):
-
-    csv_buffer = StringIO()
-    df.to_csv(csv_buffer, index = False, encoding="utf-8")
-    csv_buffer.seek(0)
+def to_gcs(df = None, source_file = None, bucket_name = None, destination_blob_name = None):
 
     client = storage.Client()
     bucket = client.bucket(bucket_name)
     blob = bucket.blob(destination_blob_name)
 
-    blob.upload_from_string(csv_buffer.getvalue(), content_type="text/csv")
+    if df is not None:
+        csv_buffer = StringIO()
+        df.to_csv(csv_buffer, index = False, encoding="utf-8")
+        csv_buffer.seek(0)
 
-    print(f"DataFrame uploaded to GCS: gs://{bucket_name}/{destination_blob_name}")
+        blob.upload_from_string(csv_buffer.getvalue(), content_type="text/csv")
+        print(f"DataFrame uploaded to GCS: gs://{bucket_name}/{destination_blob_name}")
 
-def to_bigquery(bucket_name, source_blob_name, dataset_id, table_id):
+
+    elif source_file and os.path.isfile(source_file) and source_file.lower().endswith(".json"):
+        with open(source_file, "rb") as file:
+            blob.upload_from_file(file, content_type="application/json")
+        print(f"JSON file uploaded to GCS: gs://{bucket_name}/{destination_blob_name}")
+
+    
+
+def to_bigquery(source_type, bucket_name, source_blob_name, dataset_id, table_id):
 
     client = bigquery.Client()
     
     uri = f"gs://{bucket_name}/{source_blob_name}"
 
-    job_config = bigquery.LoadJobConfig(
-        source_format = bigquery.SourceFormat.CSV,
-        skip_leading_rows = 1,  
-        autodetect = True  
-    )
+    config = data_config(source_type)
 
     table_ref = client.dataset(dataset_id).table(table_id)
 
-    load_job = client.load_table_from_uri(uri, table_ref, job_config = job_config)
+    load_job = client.load_table_from_uri(uri, table_ref, job_config = config)
     load_job.result()
 
     destination_table = client.get_table(table_ref)  
     print(f"Loaded {destination_table.num_rows} rows into {dataset_id}.{table_id}.")
 
+def data_config(file_type):
+
+    filetype_mapping = {
+                        "csv": "CSV",
+                        "json": "NEWLINE_DELIMITED_JSON",
+                        "avro": "AVRO",
+                        "parquet": "PARQUET",
+                        "orc": "ORC"
+                        }
+    
+    if file_type not in filetype_mapping:
+        raise ValueError(f"Unsupported file type: {file_type}")
+
+    source_format = getattr(bigquery.SourceFormat, filetype_mapping[file_type])
+
+    skip_rows = 1 if file_type == "csv" else 0  
+    config = bigquery.LoadJobConfig(
+        source_format = source_format,
+        skip_leading_rows = skip_rows,
+        autodetect = True
+    )
+
+    return config

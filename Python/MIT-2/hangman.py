@@ -109,7 +109,7 @@ def hangman(secret_word):
             print(get_available_letters(letters_guessed))
 
     if not is_word_guessed(secret_word, letters_guessed):
-        print("Sorry, you ran out of guesses. The word was else.\n") 
+        print(f"Sorry, you ran out of guesses. The word was '{secret_word}'.\n") 
 
 
 
@@ -181,10 +181,6 @@ def hangman_with_hints(secret_word):
 
 
 if __name__ == "__main__":
-    # pass
-
-    # To test part 2, comment out the pass line above and
-    # uncomment the following two lines.
     
     secret_word = choose_word(wordlist)
     hangman(secret_word)
