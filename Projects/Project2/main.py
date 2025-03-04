@@ -8,16 +8,16 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/Users/swaroop/Keys/bigquery_key
 sources = [
     {
         "source_type": "csv",
-        "file_path": "/Users/swaroop/DataEngineering/Project/DataSampleFiles/ev_population_data.csv",
+        "file_path": "/Users/swaroop/DataEngineering/Projects/DataSampleFiles/ev_population_data.csv",
         "bucket_name": "project2_data",
-        "destination_blob_name": "data/uploaded_data.csv",
+        "destination_blob_name": "data/uploaded_csv_data",
         "dataset_id": "ev_population_data",
         "table_id": "ev_data",
     },
     {   "source_type": "json",
         "file_path": "https://data.cityofchicago.org/resource/ydr8-5enu.json",
         "bucket_name": "project2_data",
-        "destination_blob_name": "data/uploaded_json.json",
+        "destination_blob_name": "data/uploaded_json_data",
         "dataset_id": "permits_data",
         "table_id": "permits",
     },
@@ -25,7 +25,7 @@ sources = [
         "source_type": "postgres",
         "query": "SELECT * FROM permits_data.permits",
         "bucket_name": "project2_data",
-        "destination_blob_name": "data/postgres_data.csv",
+        "destination_blob_name": "data/postgres_data",
         "dataset_id": "postgres_data",
         "table_id": "permits_postgres",
     }
@@ -47,8 +47,7 @@ def process_data(source):
         return
     
     to_gcs(df, source["bucket_name"], source["destination_blob_name"])
-    to_bigquery(source["source_type"], source["bucket_name"], source["destination_blob_name"], source["dataset_id"], source["table_id"])
-
+    to_bigquery(source["bucket_name"], source["destination_blob_name"], source["dataset_id"], source["table_id"])
 
 
 if __name__ == "__main__":
