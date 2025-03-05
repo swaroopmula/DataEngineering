@@ -12,7 +12,7 @@ def main():
         return
 
     try:
-        csv_data = get_csv("/Users/swaroop/DataEngineering/Project/Project1/Electric_Vehicle_Population_Data.csv")
+        csv_data = get_csv("/Users/swaroop/DataEngineering/Projects/DataSampleFiles/ev_population_data.csv")
         if not csv_data.empty:
             insert_data(csv_data, 'ev_population_data.ev_data', conn)
         else:
