@@ -6,7 +6,7 @@ import psycopg2
 import psycopg2.extras 
 from psycopg2.extras import execute_batch
 import numpy as np
-from io import StringIO
+from io import BytesIO
 from google.cloud import storage, bigquery
 
 def get_df(file_path):
@@ -162,24 +162,21 @@ def to_gcs(df, bucket_name, destination_blob_name):
     bucket = client.bucket(bucket_name)
     blob = bucket.blob(destination_blob_name)
 
-    csv_buffer = StringIO()
-    df.to_csv(csv_buffer, index = False, encoding="utf-8")
-    csv_buffer.seek(0)
+    parquet_buffer = BytesIO()
+    df.to_parquet(parquet_buffer, index = False, engine = "pyarrow", compression = "snappy")
+    parquet_buffer.seek(0)
 
-    blob.upload_from_string(csv_buffer.getvalue(), content_type="text/csv")
+    blob.upload_from_file(parquet_buffer, content_type="application/parquet")
     print(f"DataFrame uploaded to GCS: gs://{bucket_name}/{destination_blob_name}")
 
 def to_bigquery(bucket_name, destination_blob_name, dataset_id, table_id):
     client = bigquery.Client()
+    table_ref = f"{client.project}.{dataset_id}.{table_id}"
 
     uri = f"gs://{bucket_name}/{destination_blob_name}"
-
-    table_ref = client.dataset(dataset_id).table(table_id)
-
   
     job_config = bigquery.LoadJobConfig(
-        source_format=bigquery.SourceFormat.CSV,  
-        skip_leading_rows=1, 
+        source_format=bigquery.SourceFormat.PARQUET,  
         autodetect=True, 
     )
  
