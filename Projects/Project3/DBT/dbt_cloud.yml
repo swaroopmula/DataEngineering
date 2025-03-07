@@ -1,0 +1,14 @@
+version: "1"
+context:
+  active-host: "yn122.us1.dbt.com"
+  active-project: "70471823443633"
+projects:
+  - project-name: "Learn_dbt"
+    project-id: "70471823443633"
+    account-name: "InfoMN"
+    account-id: "70471823438513"
+    account-host: "yn122.us1.dbt.com"
+    token-name: "cloud-cli-0bd7"
+    token-value: "dbtu_SOo2hqwVSENivfROMhOLPONd4e0m1IzfHcFZHlwM4zHyCok9rk"
+
+
