@@ -3,8 +3,8 @@
 import sys
 import os
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/Users/swaroop/Keys/bigquery_key.json"
-sys.path.append("/Users/swaroop/DataEngineering/Projects/Project2")
-from load_data import process_data 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from Project2.p2_main import process_data 
 
 sources = [
     {
@@ -15,18 +15,11 @@ sources = [
         "dataset_id": "raw_data",
         "table_id": "raw_customers",
     },
-    {   "source_type": "csv",
-        "file_path": "/Users/swaroop/DataEngineering/Projects/DataSampleFiles/Sales/orders.csv",
-        "bucket_name": "project3_data",
-        "destination_blob_name": "data/raw_orders_data_file",
-        "dataset_id": "raw_data",
-        "table_id": "raw_orders",
-    },
     {
         "source_type": "csv",
         "file_path": "/Users/swaroop/DataEngineering/Projects/DataSampleFiles/Sales/sales.csv",
         "bucket_name": "project3_data",
-        "destination_blob_name": "data/raw_orders_data_file",
+        "destination_blob_name": "data/raw_sales_data_file",
         "dataset_id": "raw_data",
         "table_id": "raw_sales",
     }

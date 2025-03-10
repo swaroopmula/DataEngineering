@@ -4,7 +4,7 @@ import sys
 import pandas as pd
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from helper import get_json 
+from helper.extract import get_json 
    
 def get_clean_json(url):
 

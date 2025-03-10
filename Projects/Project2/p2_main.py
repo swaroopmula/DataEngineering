@@ -2,7 +2,9 @@ import os
 import sys
 from google.cloud import storage, bigquery
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from helper import get_df, get_postgres_data, to_gcs, to_bigquery  
+from helper.extract import get_df
+from helper.load import get_postgres_data, to_gcs, to_bigquery  
+
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/Users/swaroop/Keys/bigquery_key.json"
 sources = [

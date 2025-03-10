@@ -1,7 +1,8 @@
 import os   
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from helper import connect_postgres, get_csv, insert_data
+from helper.extract import get_csv
+from helper.load import connect_postgres, insert_data
 from clean_json import get_clean_json
 
 
