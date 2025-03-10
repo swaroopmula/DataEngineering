@@ -1,29 +1,30 @@
-{{ config(materialized='table') }}
-
-
-WITH raw_customers AS (
+WITH customers AS (
     SELECT
         customer_id,
         name,
-        NULLIF(email, '') AS email, 
+        NULLIF(LOWER(email), '') AS email, 
         CASE 
-            WHEN country = 'Unknown' THEN NULL 
+            WHEN LOWER(country) = 'unknown' THEN NULL 
             ELSE country 
         END AS country, 
         created_at
-    FROM {{ source('dbt_demo_sample', 'customers') }}
+    FROM {{ source('dbt_demo_sample', 'raw_customers') }}
 ),
 
-deduplicated_customers AS (
-    SELECT 
+cleaned_customers AS (
+    SELECT
         customer_id, 
-        name, 
-        email, 
+        name,
+        CASE 
+            WHEN LOWER(email) = 'nan' THEN NULL
+            ELSE email
+        END AS email, 
         country, 
-        created_at,
-        ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY created_at DESC) AS row_num
-    FROM raw_customers
-)
+        created_at
+    FROM customers
+),
+
+deduplicated_customers AS {{ deduplicate('cleaned_customers', 'customer_id', 'created_at') }}
 
 SELECT 
     customer_id, 
@@ -34,5 +35,3 @@ SELECT
 FROM deduplicated_customers
 WHERE row_num = 1 
 AND customer_id IS NOT NULL
-
-
