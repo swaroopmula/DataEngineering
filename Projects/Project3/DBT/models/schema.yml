@@ -2,9 +2,9 @@ version: 2
 
 sources:
   - name: dbt_demo_sample
-    schema: raw_sales
+    schema: raw_data
     tables:
-      - name: customers
+      - name: raw_customers
         description: "Raw customer data before cleaning/transformation"
         columns:
           - name: customer_id
@@ -12,8 +12,11 @@ sources:
             tests:
               - unique
               - not_null
+          - name: email
+            tests:
+              - valid_email
 
-      - name: sales
+      - name: raw_sales
         description: "Raw sales data before cleaning/transformation"
         columns:
           - name: sale_id
@@ -25,22 +28,7 @@ sources:
             description: "Foreign key referencing customers"
             tests:
               - relationships:
-                  to: source('dbt_demo_sample', 'customers')
-                  field: customer_id
-
-      - name: orders
-        description: "Raw orders data before cleaning/transformation"
-        columns:
-          - name: order_id
-            description: "Unique order ID"
-            tests:
-              - unique
-              - not_null
-          - name: customer_id
-            description: "Foreign key referencing customers"
-            tests:
-              - relationships:
-                  to: source('dbt_demo_sample', 'customers')
+                  to: source('dbt_demo_sample', 'raw_customers')
                   field: customer_id
 
 
@@ -57,7 +45,7 @@ models:
       - name: email
         description: "Customer email, cleaned from empty values"
         tests:
-          - not_null:
+          - not_null: 
               severity: warn 
 
       - name: country
@@ -70,3 +58,67 @@ models:
         description: "Timestamp when the customer was created"
         tests:
           - not_null
+
+  - name: stg_sales
+    description: "This model cleans and transforms raw sales data, ensuring non-null sale IDs, positive amounts, and standardized formatting for the 'amount' column."
+    columns:
+      - name: sale_id
+        description: "The unique identifier for each sale."
+        tests:
+          - not_null
+
+      - name: customer_id
+        description: "The unique identifier for each customer."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_customers')
+              field: customer_id
+
+      - name: amount
+        description: "The sale amount, cleaned and rounded to 2 decimal places."
+        tests:
+          - not_null
+
+      - name: sale_date
+        description: "The date of the sale."
+        tests:
+          - not_null
+
+
+macros:
+  - name: deduplicate
+    description: "Removes duplicate records from a table based on a unique key and timestamp."
+    arguments:
+      - name: table_name
+        type: string
+        description: "The name of the table to deduplicate."
+      - name: unique_key
+        type: string
+        description: "The column that uniquely identifies a record."
+      - name: timestamp_column
+        type: string
+        description: "The column used to determine the latest record in case of duplicates."
+
+
+snapshots:
+  - name: customers_snapshot
+    description: "Tracks changes to the country column in the stg_customers table."
+    columns:
+      - name: customer_id
+        description: "Primary key for the customer."
+        tests:
+          - unique
+          - not_null
+
+      - name: country
+        description: "Tracks changes in customer country."
+
+      - name: created_at
+        description: "Timestamp when the customer was created."
+
+      - name: dbt_valid_from
+        description: "Timestamp when the snapshot version became valid."
+
+      - name: dbt_valid_to
+        description: "Timestamp when the snapshot version expired (NULL if current)."
