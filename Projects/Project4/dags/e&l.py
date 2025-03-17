@@ -1,8 +1,6 @@
-import os, sys
 from airflow import DAG
 from datetime import datetime, timedelta
 from airflow.providers.google.cloud.transfers.gcs_to_bigquery import GCSToBigQueryOperator
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 sources = [
     {

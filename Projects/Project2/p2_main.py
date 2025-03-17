@@ -10,7 +10,7 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/Users/swaroop/Keys/bigquery_key
 sources = [
     {
         "source_type": "csv",
-        "file_path": "/Users/swaroop/DataEngineering/Projects/DataSampleFiles/ev_population_data.csv",
+        "file_path": "/Users/swaroop/Github/DataEngineering/Projects/DataSampleFiles/ev_population_data.csv",
         "bucket_name": "project2_data",
         "destination_blob_name": "data/uploaded_csv_data",
         "dataset_id": "ev_population_data",

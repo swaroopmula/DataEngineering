@@ -9,7 +9,7 @@ from Project2.p2_main import process_data
 sources = [
     {
         "source_type": "csv",
-        "file_path": "/Users/swaroop/DataEngineering/Projects/DataSampleFiles/Sales/customers.csv",
+        "file_path": "/Users/swaroop/Github/DataEngineering/Projects/DataSampleFiles/Sales/customers.csv",
         "bucket_name": "project3_data",
         "destination_blob_name": "data/raw_customers_data_file",
         "dataset_id": "raw_data",
@@ -17,7 +17,7 @@ sources = [
     },
     {
         "source_type": "csv",
-        "file_path": "/Users/swaroop/DataEngineering/Projects/DataSampleFiles/Sales/sales.csv",
+        "file_path": "/Users/swaroop/Github/DataEngineering/Projects/DataSampleFiles/Sales/sales.csv",
         "bucket_name": "project3_data",
         "destination_blob_name": "data/raw_sales_data_file",
         "dataset_id": "raw_data",
